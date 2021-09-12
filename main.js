@@ -11,7 +11,7 @@ var app = http.createServer(function(request,response){
         return;
     }
     response.writeHead(200);
-    response.end(fs.readFileSync(__dirname + url));
+    response.end(fs.readFileSync(__dirname + url)); //사용자에게 전송하는 데이터 생성
  
 });
 app.listen(3000);
