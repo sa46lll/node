@@ -1,6 +1,7 @@
 var http = require('http');
 var fs = require('fs');
 var url = require('url');
+var qs = require('querystring');
 
 function templateHTML(title, list, body){
   return `
@@ -64,7 +65,7 @@ var app = http.createServer(function(request,response){
       var title = 'Web - create';
       var list = templateList(filelist);
       var template = templateHTML(title, list, `
-      <form action="http://localhost:3000/process_create" method="post">
+      <form action="http://localhost:3000/create_process" method="post">
       <p><input type="text" name="title" placeholder="title"></p>
       <p>
           <textarea name="description" placeholder="description"></textarea>
@@ -77,6 +78,22 @@ var app = http.createServer(function(request,response){
       response.writeHead(200);
       response.end(template);
     })
+  } else if(pathname === '/create_process'){
+    var body='';
+    request.on('data', function(data){ //data라는 인수를 통해 수신한 정보를 줌.
+      body += data;
+      if (body.length > 1e6){ //data가 너무 길어지면 통신을 중단함.
+        request.connection.destroy();
+      }
+    });
+    request.on('end', function(){ //들어올 정보가 없으면 end 콜백함수가 들어옴.
+      var post = qs.parse(body); //post에 body를 넣음.
+      var title = post.title;
+      var description = post.description;
+      console.log(title);
+    });
+    response.writeHead(200);
+    response.end('success');
   } else {
     response.writeHead(404);
     response.end('Not Found');
