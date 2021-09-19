@@ -90,10 +90,11 @@ var app = http.createServer(function(request,response){
       var post = qs.parse(body); //post에 body를 넣음.
       var title = post.title;
       var description = post.description;
-      console.log(title);
+      fs.writeFile(`data/${title}`, description, 'utf8', function(err){
+        response.writeHead(302, {Location: `/?id=${title}`});
+        response.end('success');
+      })
     });
-    response.writeHead(200);
-    response.end('success');
   } else {
     response.writeHead(404);
     response.end('Not Found');
