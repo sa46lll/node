@@ -84,7 +84,7 @@ var app = http.createServer(function(request,response){
       response.writeHead(200);
       response.end(template);
     })
-  } else if(pathname === '/create_process'){
+  } else if(pathname === '/create_process'){ //파일생성과
     var body='';
     request.on('data', function(data){ //data라는 인수를 통해 수신한 정보를 줌.
       body += data;
@@ -107,6 +107,7 @@ var app = http.createServer(function(request,response){
       var title = queryData.id;
       var list = templateList(filelist);
       var template = templateHTML(title, list,
+        // id는 hidden을 활용해 수정 전의 title로 배정
         `
         <form action="/update_process" method="post">
           <input type="hidden" name="id" value="${title}">
@@ -125,6 +126,27 @@ var app = http.createServer(function(request,response){
       response.writeHead(200);
       response.end(template);
       });
+    });
+  } else if(pathname === '/update_process'){ //수정한 파일이름, 내용 수정
+    var body='';
+    request.on('data', function(data){ //data라는 인수를 통해 수신한 정보를 줌.
+      body += data;
+      if (body.length > 1e6){ //data가 너무 길어지면 통신을 중단함.
+        request.connection.destroy();
+      }
+    });
+    request.on('end', function(){ //들어올 정보가 없으면 end 콜백함수가 들어옴.
+      var post = qs.parse(body);
+      var id = post.id; //수정 전 타이틀(파일 이름)
+      var title = post.title; //수정 후 타이틀
+      var description = post.description;
+      fs.rename(`data/${id}`, `data/${title}`, function(err){
+        fs.writeFile(`data/${title}`, description, 'utf8', function(err){
+        response.writeHead(302, {Location: `/?id=${title}`});
+        response.end('success');
+      })
+      })
+      console.log(post);
     });
   } else {
     response.writeHead(404);
