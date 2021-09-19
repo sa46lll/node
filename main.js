@@ -40,7 +40,6 @@ var app = http.createServer(function(request,response){
     if(pathname === '/'){ //homepath 에 있을때
       if(queryData.id === undefined){ //접근하지 못하는 id로 접근할 때 Not Found
         fs.readdir('./data', function(arr, filelist){
-          console.log(filelist)
           var title = 'Welcome';
           var description = 'Hello, Node.js';
           var list = templateList(filelist);
@@ -58,7 +57,13 @@ var app = http.createServer(function(request,response){
           var list = templateList(filelist);
           var template = templateHTML(title, list,
             `<h2>${title}</h2>${description}`,
-            `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`
+            `<a href="/create">create</a>
+            <a href="/update?id=${title}">update</a>
+            <form action="delete_process" method="post" onsubmit="다시한번물어보는코드">
+              <input type="hidden" name="id" value="${title}">
+              <input type="submit" value="delete">
+            </form>
+            `
             );
           response.writeHead(200);
           response.end(template);
@@ -67,7 +72,6 @@ var app = http.createServer(function(request,response){
       } 
   } else if(pathname === '/create'){
     fs.readdir('./data', function(arr, filelist){
-      console.log(filelist)
       var title = 'Web - create';
       var list = templateList(filelist);
       var template = templateHTML(title, list, `
@@ -145,10 +149,22 @@ var app = http.createServer(function(request,response){
         response.writeHead(302, {Location: `/?id=${title}`});
         response.end('success');
       })
-      })
-      console.log(post);
+      });
     });
-  } else {
+  } else if(pathname === '/delete_process'){ //파일 삭제, 홈 리다이렉션
+    var body='';
+    request.on('data', function(data){
+      body += data;
+    });
+    request.on('end', function(){
+      var post = qs.parse(body);
+      var id = post.id;
+      fs.unlink(`data/${id}`, function(error){
+        response.writeHead(302, {Location: `/`});
+        response.end();
+      });
+    });
+   } else {
     response.writeHead(404);
     response.end('Not Found');
   }
